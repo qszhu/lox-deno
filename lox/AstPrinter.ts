@@ -9,8 +9,9 @@ import {
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
-class AstPrinter implements ExprVisitor<string> {
-  print(expr: Expr) {
+export default class AstPrinter implements ExprVisitor<string> {
+  print(expr: Expr | null) {
+    if (!expr) return
     return expr.accept(this);
   }
 
