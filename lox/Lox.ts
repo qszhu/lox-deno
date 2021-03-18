@@ -3,15 +3,19 @@ import Parser from "./Parser.ts";
 import { Scanner } from "./Scanner.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
-import AstPrinter from "./AstPrinter.ts";
+import RuntimeError from "./RuntimeError.ts";
+import Interpreter from "./Interpreter.ts";
 
 export default class Lox {
   private static _hadError = false;
+  private static _hadRuntimeError = false;
+  private static _interpreter = new Interpreter();
 
   static runFile(path: string) {
     const text = Deno.readTextFileSync(path);
     Lox.run(text);
     if (Lox._hadError) Deno.exit(65);
+    if (Lox._hadRuntimeError) Deno.exit(70);
   }
 
   static async runPrompt() {
@@ -30,12 +34,18 @@ export default class Lox {
     const parser = new Parser(tokens);
     const expression = parser.parse();
 
-    if (this._hadError) return;
-    console.log(new AstPrinter().print(expression));
+    if (Lox._hadError) return;
+
+    if (expression) Lox._interpreter.interpret(expression);
   }
 
   static error(line: number, message: string): void {
     Lox.report(line, "", message);
+  }
+
+  static runtimeError(error: RuntimeError): void {
+    console.log(`${error.message}\n[line ${error.token.line}]`);
+    Lox._hadRuntimeError = true;
   }
 
   private static report(line: number, where: string, message: string): void {
