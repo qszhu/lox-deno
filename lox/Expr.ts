@@ -6,10 +6,25 @@ export abstract class Expr {
 }
 
 export interface ExprVisitor<R> {
+  visitAssignExpr(expr: AssignExpr): R
   visitBinaryExpr(expr: BinaryExpr): R
   visitGroupingExpr(expr: GroupingExpr): R
   visitLiteralExpr(expr: LiteralExpr): R
   visitUnaryExpr(expr: UnaryExpr): R
+  visitVariableExpr(expr: VariableExpr): R
+}
+
+export class AssignExpr extends Expr {
+  constructor(
+    public name: Token,
+    public value: Expr,
+  ) {
+    super()
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitAssignExpr(this)
+  }
 }
 
 export class BinaryExpr extends Expr {
@@ -60,5 +75,17 @@ export class UnaryExpr extends Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitUnaryExpr(this)
+  }
+}
+
+export class VariableExpr extends Expr {
+  constructor(
+    public name: Token,
+  ) {
+    super()
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitVariableExpr(this)
   }
 }

@@ -32,11 +32,11 @@ export default class Lox {
     const scanner = new Scanner(source);
     const tokens = scanner.scanTokens();
     const parser = new Parser(tokens);
-    const expression = parser.parse();
+    const statements = parser.parse();
 
     if (Lox._hadError) return;
 
-    if (expression) Lox._interpreter.interpret(expression);
+    this._interpreter.interpret(statements);
   }
 
   static error(line: number, message: string): void {
