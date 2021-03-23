@@ -10,7 +10,7 @@ import {
   AssignExpr,
 } from "./Expr.ts";
 import TokenType from "./TokenType.ts";
-import { Stmt, PrintStmt, ExpressionStmt, VarStmt } from "./Stmt.ts";
+import { Stmt, PrintStmt, ExpressionStmt, VarStmt, BlockStmt } from "./Stmt.ts";
 
 class ParseError extends Error {}
 
@@ -84,6 +84,7 @@ export default class Parser {
 
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.LEFT_BRACE)) return new BlockStmt(this.block());
 
     return this.expressionStatement();
   }
@@ -92,6 +93,18 @@ export default class Parser {
     const value = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new PrintStmt(value);
+  }
+
+  private block(): Stmt[] {
+    const statements: Stmt[] = [];
+
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      const decl = this.declaration();
+      if (decl) statements.push(decl);
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
   }
 
   private expressionStatement(): Stmt {

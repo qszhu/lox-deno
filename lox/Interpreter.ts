@@ -18,6 +18,7 @@ import {
   StmtVisitor,
   Stmt,
   VarStmt,
+  BlockStmt,
 } from "./Stmt.ts";
 import Environment from "./Environment.ts";
 
@@ -56,6 +57,23 @@ export default class Interpreter
 
   private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  private executeBlock(statements: Stmt[], environment: Environment) {
+    const previous = this._environment;
+    try {
+      this._environment = environment;
+
+      for (const statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this._environment = previous;
+    }
+  }
+
+  visitBlockStmt(stmt: BlockStmt): void {
+    this.executeBlock(stmt.statements, new Environment(this._environment));
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
