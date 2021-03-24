@@ -9,6 +9,7 @@ export abstract class Stmt {
 export interface StmtVisitor<R> {
   visitBlockStmt(stmt: BlockStmt): R
   visitExpressionStmt(stmt: ExpressionStmt): R
+  visitIfStmt(stmt: IfStmt): R
   visitPrintStmt(stmt: PrintStmt): R
   visitVarStmt(stmt: VarStmt): R
 }
@@ -34,6 +35,20 @@ export class ExpressionStmt extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitExpressionStmt(this)
+  }
+}
+
+export class IfStmt extends Stmt {
+  constructor(
+    public condition: Expr,
+    public thenBranch: Stmt,
+    public elseBranch?: Stmt,
+  ) {
+    super()
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitIfStmt(this)
   }
 }
 

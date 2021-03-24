@@ -7,6 +7,7 @@ import {
   UnaryExpr,
   VariableExpr,
   AssignExpr,
+  LogicalExpr,
 } from "./Expr.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
@@ -19,6 +20,7 @@ import {
   Stmt,
   VarStmt,
   BlockStmt,
+  IfStmt,
 } from "./Stmt.ts";
 import Environment from "./Environment.ts";
 
@@ -69,6 +71,14 @@ export default class Interpreter
       }
     } finally {
       this._environment = previous;
+    }
+  }
+
+  visitIfStmt(stmt: IfStmt): void {
+    if (Boolean(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch) {
+      this.execute(stmt.elseBranch);
     }
   }
 
@@ -156,6 +166,18 @@ export default class Interpreter
 
   visitLiteralExpr(expr: LiteralExpr) {
     return expr.value;
+  }
+
+  visitLogicalExpr(expr: LogicalExpr) {
+    const left = this.evaluate(expr.left);
+
+    if (expr.operator.type === TokenType.OR) {
+      if (Boolean(left)) return left;
+    } else {
+      if (!Boolean(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   visitUnaryExpr(expr: UnaryExpr) {
