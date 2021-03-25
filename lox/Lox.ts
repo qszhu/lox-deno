@@ -1,10 +1,10 @@
 import { readStringDelim } from "https://deno.land/std@0.88.0/io/mod.ts";
+import Interpreter from "./Interpreter.ts";
 import Parser from "./Parser.ts";
+import RuntimeError from "./RuntimeError.ts";
 import { Scanner } from "./Scanner.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
-import RuntimeError from "./RuntimeError.ts";
-import Interpreter from "./Interpreter.ts";
 
 export default class Lox {
   private static _hadError = false;

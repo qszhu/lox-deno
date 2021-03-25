@@ -1,5 +1,5 @@
-import Token from "./Token.ts";
 import RuntimeError from "./RuntimeError.ts";
+import Token from "./Token.ts";
 
 export default class Environment {
   private _values: Map<string, any>;
