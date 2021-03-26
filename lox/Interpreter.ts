@@ -2,6 +2,7 @@ import Environment from "./Environment.ts";
 import {
   AssignExpr,
   BinaryExpr,
+  CallExpr,
   Expr,
   ExprVisitor,
   GroupingExpr,
@@ -11,6 +12,7 @@ import {
   VariableExpr,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
+import LoxCallable from "./LoxCallable.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
   BlockStmt,
@@ -40,9 +42,28 @@ function stringify(o: any) {
   return `${o}`;
 }
 
+class NativeClock implements LoxCallable {
+  get arity(): number {
+    return 0;
+  }
+
+  call(interpreter: Interpreter, args: any[]) {
+    return new Date().getTime() / 1000;
+  }
+
+  toString(): string {
+    return "<native fn>";
+  }
+}
+
 export default class Interpreter
   implements ExprVisitor<any>, StmtVisitor<void> {
-  private _environment = new Environment();
+  globals: Environment = new Environment();
+  private _environment = this.globals;
+
+  constructor() {
+    this.globals.define("clock", new NativeClock());
+  }
 
   interpret(statements: Stmt[]) {
     try {
@@ -108,6 +129,31 @@ export default class Interpreter
     }
 
     return null;
+  }
+
+  visitCallExpr(expr: CallExpr) {
+    const callee = this.evaluate(expr.callee);
+
+    const args: any[] = [];
+    for (const arg of expr.args) {
+      args.push(this.evaluate(arg));
+    }
+
+    if (!("call" in callee && "arity" in callee)) {
+      throw new RuntimeError(
+        expr.paren,
+        "Can only call functions and classes."
+      );
+    }
+
+    const func = callee as LoxCallable;
+    if (args.length !== func.arity) {
+      throw new RuntimeError(
+        expr.paren,
+        `Expected ${func.arity} arguments but got ${args.length}.`
+      );
+    }
+    return func.call(this, args);
   }
 
   visitGroupingExpr(expr: GroupingExpr) {
