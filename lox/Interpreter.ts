@@ -13,10 +13,12 @@ import {
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import LoxCallable from "./LoxCallable.ts";
+import LoxFunction from "./LoxFunction.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
   BlockStmt,
   ExpressionStmt,
+  FunctionStmt,
   IfStmt,
   PrintStmt,
   StmtVisitor,
@@ -40,6 +42,10 @@ function checkBinaryNumberOperand(operator: Token, left: any, right: any) {
 function stringify(o: any) {
   if (o === null) return "nil";
   return `${o}`;
+}
+
+function isCallable(callee: any) {
+  return "call" in callee && "arity" in callee;
 }
 
 class NativeClock implements LoxCallable {
@@ -139,7 +145,7 @@ export default class Interpreter
       args.push(this.evaluate(arg));
     }
 
-    if (!("call" in callee && "arity" in callee)) {
+    if (!isCallable(callee)) {
       throw new RuntimeError(
         expr.paren,
         "Can only call functions and classes."
@@ -198,7 +204,7 @@ export default class Interpreter
     stmt.accept(this);
   }
 
-  private executeBlock(statements: Stmt[], environment: Environment) {
+  executeBlock(statements: Stmt[], environment: Environment) {
     const previous = this._environment;
     try {
       this._environment = environment;
@@ -217,6 +223,11 @@ export default class Interpreter
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
     this.evaluate(stmt.expression);
+  }
+
+  visitFunctionStmt(stmt: FunctionStmt): void {
+    const func = new LoxFunction(stmt);
+    this._environment.define(stmt.name.lexeme, func);
   }
 
   visitIfStmt(stmt: IfStmt): void {

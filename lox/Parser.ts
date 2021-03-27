@@ -13,6 +13,7 @@ import Lox from "./Lox.ts";
 import {
   BlockStmt,
   ExpressionStmt,
+  FunctionStmt,
   IfStmt,
   PrintStmt,
   Stmt,
@@ -262,12 +263,40 @@ export default class Parser {
 
   private declaration(): Stmt | null {
     try {
+      if (this.match(TokenType.FUN)) return this.func("function");
       if (this.match(TokenType.VAR)) return this.varDeclaration();
       return this.statement();
     } catch (error) {
       this.synchronize();
       return null;
     }
+  }
+
+  private func(kind: string): FunctionStmt {
+    const name = this.consume(TokenType.IDENTIFIER, `Expect ${kind} name.`);
+
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+
+    const parameters: Token[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 parameters.");
+        }
+
+        parameters.push(
+          this.consume(TokenType.IDENTIFIER, "Expect parameter name.")
+        );
+      } while (this.match(TokenType.COMMA));
+    }
+
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+
+    const body = this.block();
+
+    return new FunctionStmt(name, parameters, body);
   }
 
   private varDeclaration(): Stmt {
