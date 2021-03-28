@@ -16,6 +16,7 @@ import {
   FunctionStmt,
   IfStmt,
   PrintStmt,
+  ReturnStmt,
   Stmt,
   VarStmt,
   WhileStmt,
@@ -318,6 +319,8 @@ export default class Parser {
 
     if (this.match(TokenType.PRINT)) return this.printStatement();
 
+    if (this.match(TokenType.RETURN)) return this.returnStatement();
+
     if (this.match(TokenType.WHILE)) return this.whileStatement();
 
     if (this.match(TokenType.LEFT_BRACE)) return new BlockStmt(this.block());
@@ -387,6 +390,17 @@ export default class Parser {
     const value = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new PrintStmt(value);
+  }
+
+  private returnStatement(): Stmt {
+    const keyword = this.previous();
+    let value;
+    if (!this.check(TokenType.SEMICOLON)) {
+      value = this.expression();
+    }
+
+    this.consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+    return new ReturnStmt(keyword, value);
   }
 
   private whileStatement(): Stmt {

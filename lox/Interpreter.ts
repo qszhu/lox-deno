@@ -14,6 +14,7 @@ import {
 import Lox from "./Lox.ts";
 import LoxCallable from "./LoxCallable.ts";
 import LoxFunction from "./LoxFunction.ts";
+import Return from "./Return.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
   BlockStmt,
@@ -21,6 +22,7 @@ import {
   FunctionStmt,
   IfStmt,
   PrintStmt,
+  ReturnStmt,
   StmtVisitor,
   Stmt,
   VarStmt,
@@ -226,7 +228,7 @@ export default class Interpreter
   }
 
   visitFunctionStmt(stmt: FunctionStmt): void {
-    const func = new LoxFunction(stmt);
+    const func = new LoxFunction(stmt, this._environment);
     this._environment.define(stmt.name.lexeme, func);
   }
 
@@ -241,6 +243,13 @@ export default class Interpreter
   visitPrintStmt(stmt: PrintStmt): void {
     const value = this.evaluate(stmt.expression);
     console.log(stringify(value));
+  }
+
+  visitReturnStmt(stmt: ReturnStmt): void {
+    let value = null;
+    if (stmt.value) value = this.evaluate(stmt.value);
+
+    throw new Return(value);
   }
 
   visitVarStmt(stmt: VarStmt): void {
