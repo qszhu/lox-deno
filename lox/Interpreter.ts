@@ -68,6 +68,7 @@ export default class Interpreter
   implements ExprVisitor<any>, StmtVisitor<void> {
   globals: Environment = new Environment();
   private _environment = this.globals;
+  private _locals = new Map<Expr, number>();
 
   constructor() {
     this.globals.define("clock", new NativeClock());
@@ -89,7 +90,12 @@ export default class Interpreter
 
   visitAssignExpr(expr: AssignExpr) {
     const value = this.evaluate(expr.value);
-    this._environment.assign(expr.name, value);
+
+    const distance = this._locals.get(expr);
+    if (distance !== void 0)
+      this._environment.assignAt(distance, expr.name, value);
+    else this.globals.assign(expr.name, value);
+
     return value;
   }
 
@@ -199,11 +205,23 @@ export default class Interpreter
   }
 
   visitVariableExpr(expr: VariableExpr) {
-    return this._environment.get(expr.name);
+    return this.lookupVariable(expr.name, expr);
+  }
+
+  private lookupVariable(name: Token, expr: Expr) {
+    const distance = this._locals.get(expr);
+    if (distance !== void 0) {
+      return this._environment.getAt(distance, name.lexeme);
+    }
+    return this.globals.get(name);
   }
 
   private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  resolve(expr: Expr, depth: number) {
+    this._locals.set(expr, depth);
   }
 
   executeBlock(statements: Stmt[], environment: Environment) {

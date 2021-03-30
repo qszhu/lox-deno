@@ -12,6 +12,22 @@ export default class Environment {
     this._values.set(name, value);
   }
 
+  ancestor(distance: number): Environment {
+    let environment: Environment = this;
+    for (let i = 0; i < distance; i++) {
+      environment = environment._enclosing as Environment;
+    }
+    return environment;
+  }
+
+  getAt(distance: number, name: string): any {
+    return this.ancestor(distance)._values.get(name);
+  }
+
+  assignAt(distance: number, name: Token, value: any): void {
+    this.ancestor(distance)._values.set(name.lexeme, value);
+  }
+
   get(name: Token): any {
     if (this._values.has(name.lexeme)) {
       return this._values.get(name.lexeme);
