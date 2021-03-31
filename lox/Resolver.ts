@@ -15,6 +15,7 @@ import Lox from "./Lox.ts";
 import Stack from "./Stack.ts";
 import {
   BlockStmt,
+  ClassStmt,
   ExpressionStmt,
   FunctionStmt,
   IfStmt,
@@ -150,6 +151,11 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.beginScope();
     this.resolveStatements(stmt.statements);
     this.endScope();
+  }
+
+  visitClassStmt(stmt: ClassStmt): void {
+    this.declare(stmt.name);
+    this.define(stmt.name);
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {

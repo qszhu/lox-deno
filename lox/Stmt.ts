@@ -8,6 +8,7 @@ export abstract class Stmt {
 
 export interface StmtVisitor<R> {
   visitBlockStmt(stmt: BlockStmt): R
+  visitClassStmt(stmt: ClassStmt): R
   visitExpressionStmt(stmt: ExpressionStmt): R
   visitFunctionStmt(stmt: FunctionStmt): R
   visitIfStmt(stmt: IfStmt): R
@@ -26,6 +27,19 @@ export class BlockStmt extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitBlockStmt(this)
+  }
+}
+
+export class ClassStmt extends Stmt {
+  constructor(
+    public name: Token,
+    public methods: FunctionStmt[],
+  ) {
+    super()
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitClassStmt(this)
   }
 }
 

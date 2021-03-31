@@ -13,11 +13,13 @@ import {
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import LoxCallable from "./LoxCallable.ts";
+import LoxClass from "./LoxClass.ts";
 import LoxFunction from "./LoxFunction.ts";
 import Return from "./Return.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
   BlockStmt,
+  ClassStmt,
   ExpressionStmt,
   FunctionStmt,
   IfStmt,
@@ -239,6 +241,12 @@ export default class Interpreter
 
   visitBlockStmt(stmt: BlockStmt): void {
     this.executeBlock(stmt.statements, new Environment(this._environment));
+  }
+
+  visitClassStmt(stmt: ClassStmt): void {
+    this._environment.define(stmt.name.lexeme, null);
+    const klass = new LoxClass(stmt.name.lexeme);
+    this._environment.assign(stmt.name, klass);
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
