@@ -3,9 +3,11 @@ import {
   BinaryExpr,
   CallExpr,
   Expr,
+  GetExpr,
   GroupingExpr,
   LiteralExpr,
   LogicalExpr,
+  SetExpr,
   UnaryExpr,
   VariableExpr,
 } from "./Expr.ts";
@@ -119,6 +121,8 @@ export default class Parser {
       if (expr instanceof VariableExpr) {
         const name = expr.name;
         return new AssignExpr(name, value);
+      } else if (expr instanceof GetExpr) {
+        return new SetExpr(expr.obj, expr.name, value);
       }
 
       this.error(equals, "Invalid assignment target.");
@@ -213,6 +217,12 @@ export default class Parser {
     while (true) {
       if (this.match(TokenType.LEFT_PAREN)) {
         expr = this.finishCall(expr);
+      } else if (this.match(TokenType.DOT)) {
+        const name = this.consume(
+          TokenType.IDENTIFIER,
+          "Expect property name after '.'."
+        );
+        expr = new GetExpr(expr, name);
       } else {
         break;
       }

@@ -4,9 +4,11 @@ import {
   CallExpr,
   Expr,
   ExprVisitor,
+  GetExpr,
   GroupingExpr,
   LiteralExpr,
   LogicalExpr,
+  SetExpr,
   UnaryExpr,
   VariableExpr,
 } from "./Expr.ts";
@@ -31,6 +33,7 @@ import Token from "./Token.ts";
 enum FunctionType {
   NONE,
   FUNCTION,
+  METHOD,
 }
 
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
@@ -118,6 +121,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
+  visitGetExpr(expr: GetExpr): void {
+    this.resolveExpr(expr.obj);
+  }
+
   visitGroupingExpr(expr: GroupingExpr): void {
     this.resolveExpr(expr.expression);
   }
@@ -127,6 +134,11 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitLogicalExpr(expr: LogicalExpr): void {
     this.resolveExpr(expr.left);
     this.resolveExpr(expr.right);
+  }
+
+  visitSetExpr(expr: SetExpr): void {
+    this.resolveExpr(expr.value);
+    this.resolveExpr(expr.obj);
   }
 
   visitUnaryExpr(expr: UnaryExpr): void {
@@ -156,6 +168,11 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitClassStmt(stmt: ClassStmt): void {
     this.declare(stmt.name);
     this.define(stmt.name);
+
+    for (const method of stmt.methods) {
+      const declaration = FunctionType.METHOD;
+      this.resolveFunction(method, declaration);
+    }
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {

@@ -5,9 +5,11 @@ import {
   CallExpr,
   Expr,
   ExprVisitor,
+  GetExpr,
   GroupingExpr,
   LiteralExpr,
   LogicalExpr,
+  SetExpr,
   UnaryExpr,
   VariableExpr,
 } from "./Expr.ts";
@@ -15,6 +17,7 @@ import Lox from "./Lox.ts";
 import LoxCallable from "./LoxCallable.ts";
 import LoxClass from "./LoxClass.ts";
 import LoxFunction from "./LoxFunction.ts";
+import LoxInstance from "./LoxInstance.ts";
 import Return from "./Return.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
@@ -172,6 +175,15 @@ export default class Interpreter
     return func.call(this, args);
   }
 
+  visitGetExpr(expr: GetExpr) {
+    const obj = this.evaluate(expr.obj);
+    if (obj instanceof LoxInstance) {
+      return obj.get(expr.name);
+    }
+
+    throw new RuntimeError(expr.name, "Only instances have properties.");
+  }
+
   visitGroupingExpr(expr: GroupingExpr) {
     return this.evaluate(expr.expression);
   }
@@ -190,6 +202,18 @@ export default class Interpreter
     }
 
     return this.evaluate(expr.right);
+  }
+
+  visitSetExpr(expr: SetExpr): any {
+    const obj = this.evaluate(expr.obj);
+
+    if (!(obj instanceof LoxInstance)) {
+      throw new RuntimeError(expr.name, "Only instances have fields.");
+    }
+
+    const value = this.evaluate(expr.value);
+    obj.set(expr.name, value);
+    return value;
   }
 
   visitUnaryExpr(expr: UnaryExpr) {
@@ -245,7 +269,14 @@ export default class Interpreter
 
   visitClassStmt(stmt: ClassStmt): void {
     this._environment.define(stmt.name.lexeme, null);
-    const klass = new LoxClass(stmt.name.lexeme);
+
+    const methods = new Map<string, LoxFunction>();
+    for (const method of stmt.methods) {
+      const func = new LoxFunction(method, this._environment);
+      methods.set(method.name.lexeme, func);
+    }
+
+    const klass = new LoxClass(stmt.name.lexeme, methods);
     this._environment.assign(stmt.name, klass);
   }
 
