@@ -10,6 +10,7 @@ import {
   LiteralExpr,
   LogicalExpr,
   SetExpr,
+  ThisExpr,
   UnaryExpr,
   VariableExpr,
 } from "./Expr.ts";
@@ -214,6 +215,10 @@ export default class Interpreter
     const value = this.evaluate(expr.value);
     obj.set(expr.name, value);
     return value;
+  }
+
+  visitThisExpr(expr: ThisExpr): any {
+    return this.lookupVariable(expr.keyword, expr);
   }
 
   visitUnaryExpr(expr: UnaryExpr) {

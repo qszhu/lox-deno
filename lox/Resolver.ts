@@ -9,6 +9,7 @@ import {
   LiteralExpr,
   LogicalExpr,
   SetExpr,
+  ThisExpr,
   UnaryExpr,
   VariableExpr,
 } from "./Expr.ts";
@@ -36,9 +37,15 @@ enum FunctionType {
   METHOD,
 }
 
+enum ClassType {
+  NONE,
+  CLASS,
+}
+
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private _scopes = new Stack<Map<string, boolean>>();
   private _currentFunction = FunctionType.NONE;
+  private _currentClass = ClassType.NONE;
 
   constructor(private _interpreter: Interpreter) {}
 
@@ -141,6 +148,14 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.resolveExpr(expr.obj);
   }
 
+  visitThisExpr(expr: ThisExpr): void {
+    if (this._currentClass === ClassType.NONE) {
+      Lox.parseError(expr.keyword, "Can't use 'this' outsize of a class.");
+      return;
+    }
+    this.resolveLocal(expr, expr.keyword);
+  }
+
   visitUnaryExpr(expr: UnaryExpr): void {
     this.resolveExpr(expr.right);
   }
@@ -166,13 +181,23 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitClassStmt(stmt: ClassStmt): void {
+    const enclosingClass = this._currentClass;
+    this._currentClass = ClassType.CLASS;
+
     this.declare(stmt.name);
     this.define(stmt.name);
+
+    this.beginScope();
+    this._scopes.peek().set("this", true);
 
     for (const method of stmt.methods) {
       const declaration = FunctionType.METHOD;
       this.resolveFunction(method, declaration);
     }
+
+    this.endScope();
+
+    this._currentClass = enclosingClass;
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {

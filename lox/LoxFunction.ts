@@ -1,6 +1,7 @@
 import Environment from "./Environment.ts";
 import Interpreter from "./Interpreter.ts";
 import LoxCallable from "./LoxCallable.ts";
+import LoxInstance from "./LoxInstance.ts";
 import { FunctionStmt } from "./Stmt.ts";
 
 export default class LoxFunction implements LoxCallable {
@@ -8,6 +9,12 @@ export default class LoxFunction implements LoxCallable {
     private _declaration: FunctionStmt,
     private _closure: Environment
   ) {}
+
+  bind(instance: LoxInstance): LoxFunction {
+    const environment = new Environment(this._closure);
+    environment.define("this", instance);
+    return new LoxFunction(this._declaration, environment);
+  }
 
   get arity(): number {
     return this._declaration.params.length;
