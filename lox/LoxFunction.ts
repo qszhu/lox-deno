@@ -7,13 +7,14 @@ import { FunctionStmt } from "./Stmt.ts";
 export default class LoxFunction implements LoxCallable {
   constructor(
     private _declaration: FunctionStmt,
-    private _closure: Environment
+    private _closure: Environment,
+    private _isInitializer: boolean
   ) {}
 
   bind(instance: LoxInstance): LoxFunction {
     const environment = new Environment(this._closure);
     environment.define("this", instance);
-    return new LoxFunction(this._declaration, environment);
+    return new LoxFunction(this._declaration, environment, this._isInitializer);
   }
 
   get arity(): number {
@@ -28,8 +29,11 @@ export default class LoxFunction implements LoxCallable {
     try {
       interpreter.executeBlock(this._declaration.body, environment);
     } catch (returnValue) {
+      if (this._isInitializer) return this._closure.getAt(0, "this");
       return returnValue.value;
     }
+
+    if (this._isInitializer) return this._closure.getAt(0, "this");
     return null;
   }
 

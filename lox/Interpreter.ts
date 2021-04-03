@@ -277,7 +277,11 @@ export default class Interpreter
 
     const methods = new Map<string, LoxFunction>();
     for (const method of stmt.methods) {
-      const func = new LoxFunction(method, this._environment);
+      const func = new LoxFunction(
+        method,
+        this._environment,
+        method.name.lexeme === "init"
+      );
       methods.set(method.name.lexeme, func);
     }
 
@@ -290,7 +294,7 @@ export default class Interpreter
   }
 
   visitFunctionStmt(stmt: FunctionStmt): void {
-    const func = new LoxFunction(stmt, this._environment);
+    const func = new LoxFunction(stmt, this._environment, false);
     this._environment.define(stmt.name.lexeme, func);
   }
 
