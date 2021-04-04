@@ -188,6 +188,17 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.declare(stmt.name);
     this.define(stmt.name);
 
+    if (stmt.superclass && stmt.name.lexeme === stmt.superclass.name.lexeme) {
+      Lox.parseError(
+        stmt.superclass.name,
+        "A class can't inherit from itself."
+      );
+    }
+
+    if (stmt.superclass) {
+      this.resolveExpr(stmt.superclass);
+    }
+
     this.beginScope();
     this._scopes.peek().set("this", true);
 

@@ -1,6 +1,6 @@
 // Auto-generated. DO NOT MODIFY.
 import Token from "./Token.ts"
-import { Expr } from "./Expr.ts"
+import { Expr, VariableExpr } from "./Expr.ts"
 
 export abstract class Stmt {
   abstract accept<R>(visitor: StmtVisitor<R>): R
@@ -34,6 +34,7 @@ export class ClassStmt extends Stmt {
   constructor(
     public name: Token,
     public methods: FunctionStmt[],
+    public superclass?: VariableExpr,
   ) {
     super()
   }

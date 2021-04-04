@@ -290,6 +290,13 @@ export default class Parser {
 
   private classDeclaration(): Stmt {
     const name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+
+    let superclass;
+    if (this.match(TokenType.LESS)) {
+      this.consume(TokenType.IDENTIFIER, "Expect superclass name.");
+      superclass = new VariableExpr(this.previous());
+    }
+
     this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
     const methods: FunctionStmt[] = [];
@@ -299,7 +306,7 @@ export default class Parser {
 
     this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
 
-    return new ClassStmt(name, methods);
+    return new ClassStmt(name, methods, superclass);
   }
 
   private func(kind: string): FunctionStmt {

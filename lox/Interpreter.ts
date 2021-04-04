@@ -273,6 +273,17 @@ export default class Interpreter
   }
 
   visitClassStmt(stmt: ClassStmt): void {
+    let superclass;
+    if (stmt.superclass) {
+      superclass = this.evaluate(stmt.superclass);
+      if (!(superclass instanceof LoxClass)) {
+        throw new RuntimeError(
+          stmt.superclass.name,
+          "Superclass must be a class."
+        );
+      }
+    }
+
     this._environment.define(stmt.name.lexeme, null);
 
     const methods = new Map<string, LoxFunction>();
@@ -285,7 +296,7 @@ export default class Interpreter
       methods.set(method.name.lexeme, func);
     }
 
-    const klass = new LoxClass(stmt.name.lexeme, methods);
+    const klass = new LoxClass(stmt.name.lexeme, methods, superclass);
     this._environment.assign(stmt.name, klass);
   }
 

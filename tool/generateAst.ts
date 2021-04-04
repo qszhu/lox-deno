@@ -4,7 +4,7 @@ function defineAst(outputDir: string, baseName: string, types: string[]) {
   const lines = [
     "// Auto-generated. DO NOT MODIFY.",
     'import Token from "./Token.ts"',
-    'import { Expr } from "./Expr.ts"',
+    'import { Expr, VariableExpr } from "./Expr.ts"',
     "",
     `export abstract class ${baseName} {`,
     `  abstract accept<R>(visitor: ${baseName}Visitor<R>): R`,
@@ -80,7 +80,7 @@ defineAst(outputDir, "Expr", [
 
 defineAst(outputDir, "Stmt", [
   "Block      | statements: Stmt[]",
-  "Class      | name: Token, methods: FunctionStmt[]",
+  "Class      | name: Token, methods: FunctionStmt[], superclass?: VariableExpr",
   "Expression | expression: Expr",
   "Function   | name: Token, params: Token[], body: Stmt[]",
   "If         | condition: Expr, thenBranch: Stmt, elseBranch?: Stmt",
