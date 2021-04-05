@@ -1,4 +1,4 @@
-import Lox from "./Lox.ts";
+import ErrorReporter from "./ErrorReporter.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
@@ -154,7 +154,7 @@ export class Scanner {
         } else if (this.isAlpha(c)) {
           this.identifier();
         } else {
-          Lox.error(this._line, "Unexpected character.");
+          ErrorReporter.error(this._line, "Unexpected character.");
         }
         break;
     }
@@ -167,7 +167,7 @@ export class Scanner {
     }
 
     if (this.isAtEnd()) {
-      Lox.error(this._line, "Unterminated string.");
+      ErrorReporter.error(this._line, "Unterminated string.");
       return;
     }
 

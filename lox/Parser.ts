@@ -1,3 +1,4 @@
+import ErrorReporter from "./ErrorReporter.ts";
 import {
   AssignExpr,
   BinaryExpr,
@@ -13,7 +14,6 @@ import {
   UnaryExpr,
   VariableExpr,
 } from "./Expr.ts";
-import Lox from "./Lox.ts";
 import {
   BlockStmt,
   ClassStmt,
@@ -83,7 +83,7 @@ export default class Parser {
   }
 
   private error(token: Token, message: string): ParseError {
-    Lox.parseError(token, message);
+    ErrorReporter.parseError(token, message);
     return new ParseError();
   }
 

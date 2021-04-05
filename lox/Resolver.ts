@@ -1,3 +1,4 @@
+import ErrorReporter from "./ErrorReporter.ts";
 import {
   AssignExpr,
   BinaryExpr,
@@ -15,7 +16,6 @@ import {
   VariableExpr,
 } from "./Expr.ts";
 import Interpreter from "./Interpreter.ts";
-import Lox from "./Lox.ts";
 import Stack from "./Stack.ts";
 import {
   BlockStmt,
@@ -94,7 +94,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
     const scope = this._scopes.peek();
     if (scope.has(name.lexeme)) {
-      Lox.parseError(name, "Already variable with this name in this scope.");
+      ErrorReporter.parseError(
+        name,
+        "Already variable with this name in this scope."
+      );
     }
 
     scope.set(name.lexeme, false);
@@ -153,9 +156,12 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitSuperExpr(expr: SuperExpr): void {
     if (this._currentClass === ClassType.NONE) {
-      Lox.parseError(expr.keyword, "Can't use 'super' outside of a class.");
+      ErrorReporter.parseError(
+        expr.keyword,
+        "Can't use 'super' outside of a class."
+      );
     } else if (this._currentClass !== ClassType.SUBCLASS) {
-      Lox.parseError(
+      ErrorReporter.parseError(
         expr.keyword,
         "Can't use 'super' in a class with no superclass."
       );
@@ -166,7 +172,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitThisExpr(expr: ThisExpr): void {
     if (this._currentClass === ClassType.NONE) {
-      Lox.parseError(expr.keyword, "Can't use 'this' outsize of a class.");
+      ErrorReporter.parseError(
+        expr.keyword,
+        "Can't use 'this' outsize of a class."
+      );
       return;
     }
     this.resolveLocal(expr, expr.keyword);
@@ -181,7 +190,7 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       !this._scopes.isEmpty &&
       this._scopes.peek().get(expr.name.lexeme) === false
     ) {
-      Lox.parseError(
+      ErrorReporter.parseError(
         expr.name,
         "Can't read local variable in its own initializer."
       );
@@ -204,7 +213,7 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.define(stmt.name);
 
     if (stmt.superclass && stmt.name.lexeme === stmt.superclass.name.lexeme) {
-      Lox.parseError(
+      ErrorReporter.parseError(
         stmt.superclass.name,
         "A class can't inherit from itself."
       );
@@ -261,12 +270,15 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitReturnStmt(stmt: ReturnStmt): void {
     if (this._currentFunction === FunctionType.NONE) {
-      Lox.parseError(stmt.keyword, "Can't return from top-level code.");
+      ErrorReporter.parseError(
+        stmt.keyword,
+        "Can't return from top-level code."
+      );
     }
 
     if (stmt.value !== void 0) {
       if (this._currentFunction === FunctionType.INITIALIZER) {
-        Lox.parseError(
+        ErrorReporter.parseError(
           stmt.keyword,
           "Can't return a value from an initializer."
         );

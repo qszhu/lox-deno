@@ -1,4 +1,5 @@
 import Environment from "./Environment.ts";
+import ErrorReporter from "./ErrorReporter.ts";
 import {
   AssignExpr,
   BinaryExpr,
@@ -15,7 +16,6 @@ import {
   UnaryExpr,
   VariableExpr,
 } from "./Expr.ts";
-import Lox from "./Lox.ts";
 import LoxCallable from "./LoxCallable.ts";
 import LoxClass from "./LoxClass.ts";
 import LoxFunction from "./LoxFunction.ts";
@@ -87,7 +87,7 @@ export default class Interpreter
         this.execute(statement);
       }
     } catch (error) {
-      Lox.runtimeError(error);
+      ErrorReporter.runtimeError(error);
     }
   }
 
