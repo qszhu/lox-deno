@@ -1,4 +1,4 @@
-[lox](https://craftinginterpreters.com/contents.html) in Deno
+[lox](https://craftinginterpreters.com/a-tree-walk-interpreter.html) interpreter in Deno
 
 * generate AST files
 
