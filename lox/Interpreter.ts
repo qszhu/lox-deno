@@ -10,6 +10,7 @@ import {
   LiteralExpr,
   LogicalExpr,
   SetExpr,
+  SuperExpr,
   ThisExpr,
   UnaryExpr,
   VariableExpr,
@@ -217,6 +218,20 @@ export default class Interpreter
     return value;
   }
 
+  visitSuperExpr(expr: SuperExpr): any {
+    const distance = this._locals.get(expr)!;
+    const superclass = this._environment.getAt(distance, "super") as LoxClass;
+    const obj = this._environment.getAt(distance - 1, "this") as LoxInstance;
+    const method = superclass.findMethod(expr.method.lexeme);
+    if (!method) {
+      throw new RuntimeError(
+        expr.method,
+        `Undefined property '${expr.method.lexeme}'.`
+      );
+    }
+    return method.bind(obj);
+  }
+
   visitThisExpr(expr: ThisExpr): any {
     return this.lookupVariable(expr.keyword, expr);
   }
@@ -286,6 +301,12 @@ export default class Interpreter
 
     this._environment.define(stmt.name.lexeme, null);
 
+    // if (stmt.superclass) {
+    if (superclass) {
+      this._environment = new Environment(this._environment);
+      this._environment.define("super", superclass);
+    }
+
     const methods = new Map<string, LoxFunction>();
     for (const method of stmt.methods) {
       const func = new LoxFunction(
@@ -297,6 +318,9 @@ export default class Interpreter
     }
 
     const klass = new LoxClass(stmt.name.lexeme, methods, superclass);
+
+    if (superclass) this._environment = this._environment.enclosing!;
+
     this._environment.assign(stmt.name, klass);
   }
 

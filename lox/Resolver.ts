@@ -9,6 +9,7 @@ import {
   LiteralExpr,
   LogicalExpr,
   SetExpr,
+  SuperExpr,
   ThisExpr,
   UnaryExpr,
   VariableExpr,
@@ -41,6 +42,7 @@ enum FunctionType {
 enum ClassType {
   NONE,
   CLASS,
+  SUBCLASS,
 }
 
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
@@ -149,6 +151,19 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.resolveExpr(expr.obj);
   }
 
+  visitSuperExpr(expr: SuperExpr): void {
+    if (this._currentClass === ClassType.NONE) {
+      Lox.parseError(expr.keyword, "Can't use 'super' outside of a class.");
+    } else if (this._currentClass !== ClassType.SUBCLASS) {
+      Lox.parseError(
+        expr.keyword,
+        "Can't use 'super' in a class with no superclass."
+      );
+    }
+
+    this.resolveLocal(expr, expr.keyword);
+  }
+
   visitThisExpr(expr: ThisExpr): void {
     if (this._currentClass === ClassType.NONE) {
       Lox.parseError(expr.keyword, "Can't use 'this' outsize of a class.");
@@ -196,7 +211,13 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     if (stmt.superclass) {
+      this._currentClass = ClassType.SUBCLASS;
       this.resolveExpr(stmt.superclass);
+    }
+
+    if (stmt.superclass) {
+      this.beginScope();
+      this._scopes.peek().set("super", true);
     }
 
     this.beginScope();
@@ -211,6 +232,8 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     this.endScope();
+
+    if (stmt.superclass) this.endScope();
 
     this._currentClass = enclosingClass;
   }

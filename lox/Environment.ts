@@ -8,6 +8,10 @@ export default class Environment {
     this._values = new Map();
   }
 
+  get enclosing(): Environment | undefined {
+    return this._enclosing;
+  }
+
   define(name: string, value: any): void {
     this._values.set(name, value);
   }
